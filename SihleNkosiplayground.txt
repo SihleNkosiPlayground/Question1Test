@@ -1,6 +1,3 @@
-SihleNkosiPlayground
-Mistertom@2024
-
 %%[
 VAR @CouponRow, @VoucherCode, @ExpirationDate, @FirstName, @LastName, @PurchaseHistory
 SET @CouponRow = LookupRows("VoucherCodeDataExtension", "IsClaimed", 0, "SubscriberKey", MOBILE_NUMBER)
