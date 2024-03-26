@@ -1,0 +1,59 @@
+SihleNkosiPlayground
+Mistertom@2024
+
+%%[
+VAR @CouponRow, @VoucherCode, @ExpirationDate, @FirstName, @LastName, @PurchaseHistory
+SET @CouponRow = LookupRows("VoucherCodeDataExtension", "IsClaimed", 0, "SubscriberKey", MOBILE_NUMBER)
+
+IF RowCount(@CouponRow) > 0 THEN
+    SET @CouponRow = Row(@CouponRow, 1)
+    SET @VoucherCode = Field(@CouponRow, "CouponCode")
+    SET @ExpirationDate = FormatDate(DateAdd(Now(), 3, "D"), "yyyy-MM-dd")
+    SET @FirstName = AttributeValue("FirstName")
+    SET @LastName = AttributeValue("LastName")
+    
+    /* Retrieve PurchaseHistory from SpendableDataExtension */
+    SET @PurchaseHistoryRows = LookupRows("SpendableDataExtension", "SubscriberKey", MOBILE_NUMBER)
+    IF RowCount(@PurchaseHistoryRows) > 0 THEN
+        SET @PurchaseHistoryRow = Row(@PurchaseHistoryRows, 1)
+        SET @PurchaseHistory = Field(@PurchaseHistoryRow, "PurchaseHistory")
+    ELSE
+        SET @PurchaseHistory = "" /* Default value if no purchase history found */
+    ENDIF
+    
+    UpdateData("VoucherCodeDataExtension", 1, "IsClaimed", 1, "SubscriberKey", MOBILE_NUMBER, "CouponCode", @VoucherCode)
+    
+    /* Personalize email content */
+    SET @Greeting = "Hi " Concat(@FirstName, " ", @LastName)
+    SET @Content = Concat("Based on your purchase history spanning over ", @PurchaseHistory, ", here is your voucher for being a loyal customer. Your promo code is ", @VoucherCode, " and expires on ", @ExpirationDate, ". Thanks for responding!")
+    
+ELSE
+    /* No coupons available */
+    SET @Content = "Sorry - No coupons available."
+ENDIF
+]%%
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Content</title>
+</head>
+<body>
+<div>
+<p style="margin: 0; font-size: 11pt; font-family: Calibri, sans-serif;">
+%%=v(@Greeting)=%%
+</p>
+<p style="margin: 0; font-size: 11pt; font-family: Calibri, sans-serif;">
+%%=v(@Content)=%%
+</p>
+<p style="margin: 0; font-size: 11pt; font-family: Calibri, sans-serif;">
+Kind Regards
+</p>
+<p style="margin: 0; font-size: 11pt; font-family: Calibri, sans-serif;">
+Your Partner in Clothing
+</p>
+</div>
+</body>
+</html>
